@@ -7,6 +7,7 @@ import '../widgets/app_drawer.dart';
 // import 'package:shop_app/providers/product_provider.dart';
 import '../widgets/badge.dart';
 import '../widgets/products_grid.dart';
+import '../providers/product_provider.dart';
 
 enum MenuOption { all, favorites }
 
@@ -19,6 +20,33 @@ class ProductOvervieScreen extends StatefulWidget {
 
 class _ProductOvervieScreenState extends State<ProductOvervieScreen> {
   var _showFavorites = false;
+  var _isLoading = false;
+  var _isInit = true;
+  @override
+  void initState() {
+    // Provider.of<Products>(context).fetchAndSetProducts(); // WON'T WORK
+    // Future.delayed(Duration.zero)
+    //     .then((_) => Provider.of<Products>(context).fetchAndSetProducts());
+
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<Products>(context).fetchAndSetProducts().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     // final productsContainer = Provider.of<Products>(context, listen: false);
@@ -67,7 +95,11 @@ class _ProductOvervieScreenState extends State<ProductOvervieScreen> {
         ],
       ),
       drawer: const AppDrawer(),
-      body: ProductsGrid(_showFavorites),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : ProductsGrid(_showFavorites),
     );
   }
 }
